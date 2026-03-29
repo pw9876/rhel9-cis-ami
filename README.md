@@ -13,10 +13,12 @@ Produces a **CIS Level 2 hardened Rocky Linux 9 AMI** in `eu-west-2` using [Pack
 
 ### Local build
 
+The local QEMU build runs packer directly on the host — Docker cannot access QEMU or macOS HVF acceleration.
+
 | Tool | Notes |
 |------|-------|
-| Docker | Used to run Packer via `ghcr.io/pw9876/packer-docker` |
-| QEMU | ≥ 8.0 with KVM (Linux) or HVF (macOS) |
+| Packer | ≥ 1.10 — `brew install hashicorp/tap/packer` |
+| QEMU | ≥ 8.0 — `brew install qemu` (macOS) or `apt install qemu-kvm` (Linux) |
 | Rocky Linux 9 cloud image | QCOW2 format — see below |
 
 ## Quick start

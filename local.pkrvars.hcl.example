@@ -1,16 +1,16 @@
 # Copy this file to local.pkrvars.hcl and fill in your values.
 # DO NOT commit the populated file — it is listed in .gitignore.
 
-# Path to a Rocky Linux 9 KVM guest image (QCOW2) as seen inside the build container.
-# ~/Downloads is mounted at /downloads by the Makefile.
+# Path to a Rocky Linux 9 KVM guest image (QCOW2).
 # Download from: https://rockylinux.org/download (Generic Cloud / Base image)
-source_image_path = "/downloads/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
+# Use an absolute path — Packer's file() function does not expand ~.
+source_image_path = "/Users/you/Downloads/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2"
 
 # SSH keypair used during provisioning.
 # The public key is injected into the VM via cloud-init; Packer connects with the private key.
-# SSH keys are mounted into the build container at /ssh by the Makefile.
-ssh_public_key_file  = "/ssh/id_ed25519.pub"
-ssh_private_key_file = "/ssh/id_ed25519"
+# Use absolute paths — Packer's file() function does not expand ~.
+ssh_public_key_file  = "/Users/you/.ssh/id_ed25519.pub"
+ssh_private_key_file = "/Users/you/.ssh/id_ed25519"
 
 # SSH username in the source cloud image (default: rocky for Rocky Linux cloud images).
 ssh_username = "rocky"
