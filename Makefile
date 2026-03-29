@@ -19,10 +19,10 @@ help: ## Show this help message
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
 
 init: ## Download Packer plugins (AWS build)
-	$(PACKER) init $(PACKER_DIR)/rhel9-cis.pkr.hcl
+	$(PACKER) init $(PACKER_DIR)/
 
 init-local: ## Download Packer plugins (local QEMU build)
-	$(PACKER) init $(PACKER_LOCAL_DIR)/rhel9-cis-local.pkr.hcl
+	$(PACKER) init $(PACKER_LOCAL_DIR)/
 
 fmt: ## Format Packer HCL files (writes in place)
 	$(PACKER) fmt $(PACKER_DIR)/
@@ -30,22 +30,22 @@ fmt: ## Format Packer HCL files (writes in place)
 
 validate: init ## Validate Packer template syntax (no AWS creds needed)
 	$(PACKER) fmt -check $(PACKER_DIR)/
-	$(PACKER) validate -syntax-only $(PACKER_DIR)/rhel9-cis.pkr.hcl
+	$(PACKER) validate -syntax-only $(PACKER_DIR)/
 
 validate-local: init-local ## Validate local Packer template syntax
 	$(PACKER) fmt -check $(PACKER_LOCAL_DIR)/
-	$(PACKER) validate -syntax-only $(PACKER_LOCAL_DIR)/rhel9-cis-local.pkr.hcl
+	$(PACKER) validate -syntax-only $(PACKER_LOCAL_DIR)/
 
 lint: ## Run shellcheck on harden.sh
 	shellcheck $(SCRIPTS_DIR)/harden.sh
 
 build: init ## Build the AMI (requires AWS credentials and eu-west-2.pkrvars.hcl)
 	@test -f $(VARS_FILE) || (echo "ERROR: $(VARS_FILE) not found. Copy eu-west-2.pkrvars.hcl.example and fill in values." && exit 1)
-	$(PACKER) build -var-file=$(VARS_FILE) $(PACKER_DIR)/rhel9-cis.pkr.hcl
+	$(PACKER) build -var-file=$(VARS_FILE) $(PACKER_DIR)/
 
 build-local: init-local ## Build a local QCOW2 image (requires QEMU and local.pkrvars.hcl)
 	@test -f $(LOCAL_VARS_FILE) || (echo "ERROR: $(LOCAL_VARS_FILE) not found. Copy local.pkrvars.hcl.example and fill in values." && exit 1)
-	$(PACKER) build -var-file=$(LOCAL_VARS_FILE) $(PACKER_LOCAL_DIR)/rhel9-cis-local.pkr.hcl
+	$(PACKER) build -var-file=$(LOCAL_VARS_FILE) $(PACKER_LOCAL_DIR)/
 
 clean: ## Remove generated files (manifest, local output)
 	rm -f manifest.json manifest-local.json
