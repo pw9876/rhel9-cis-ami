@@ -51,7 +51,7 @@ source "qemu" "rhel9_cis_local" {
   cd_label = "cidata"
   cd_content = {
     "meta-data" = "instance-id: rhel9-cis-build\nlocal-hostname: rhel9-cis-build\n"
-    "user-data"  = local.cloud_init_userdata
+    "user-data" = local.cloud_init_userdata
   }
 
   boot_wait = var.boot_wait
