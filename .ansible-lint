@@ -1,0 +1,6 @@
+exclude_paths:
+  - ansible/roles/
+  - ansible/collections/
+
+warn_list:
+  - yaml[line-length]
