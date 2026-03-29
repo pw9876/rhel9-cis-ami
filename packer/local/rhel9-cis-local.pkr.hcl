@@ -6,10 +6,6 @@ packer {
       source  = "github.com/hashicorp/qemu"
       version = ">= 1.1.0"
     }
-    ansible = {
-      source  = "github.com/hashicorp/ansible"
-      version = ">= 1.1.0"
-    }
   }
 }
 
@@ -61,23 +57,9 @@ build {
   name    = "rocky9-cis-l2-local"
   sources = ["source.qemu.rhel9_cis_local"]
 
-  provisioner "ansible" {
-    playbook_file = "${path.root}/../../ansible/playbook.yml"
-
-    galaxy_file          = "${path.root}/../../ansible/requirements.yml"
-    galaxy_force_install = true
-
-    ansible_env_vars = [
-      "ANSIBLE_ROLES_PATH=${path.root}/../../ansible/roles",
-      "ANSIBLE_COLLECTIONS_PATH=${path.root}/../../ansible/collections",
-      "ANSIBLE_HOST_KEY_CHECKING=False",
-      "ANSIBLE_SSH_ARGS=-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
-    ]
-
-    extra_arguments = [
-      "--extra-vars", "@${path.root}/../../ansible/group_vars/all/cis.yml",
-      "-v",
-    ]
+  provisioner "shell" {
+    script          = "${path.root}/../../scripts/harden.sh"
+    execute_command = "sudo bash '{{.Path}}'"
   }
 
   post-processor "manifest" {

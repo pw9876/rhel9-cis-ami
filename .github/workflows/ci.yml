@@ -74,26 +74,13 @@ jobs:
             validate -syntax-only rhel9-cis-local.pkr.hcl
 
   lint:
-    name: Ansible lint
+    name: shellcheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install ansible-core and ansible-lint
-        run: pip install ansible-core ansible-lint
-
-      - name: Install required roles
-        run: |
-          ansible-galaxy install -r ansible/requirements.yml \
-            --roles-path ansible/roles --force
-
-      - name: Run ansible-lint
-        run: ansible-lint ansible/playbook.yml
+      - name: Run shellcheck
+        run: shellcheck scripts/harden.sh
 
   # ── Tier 2: security / quality (need tier 1 to pass) ──────────────────────
 
