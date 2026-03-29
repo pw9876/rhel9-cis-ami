@@ -9,10 +9,6 @@ output-local/
 .packer.d/
 packer_cache/
 
-# Ansible downloaded roles and collections
-ansible/roles/
-ansible/collections/
-
 # Python virtual environments and caches
 .venv/
 __pycache__/

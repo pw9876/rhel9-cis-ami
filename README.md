@@ -1,26 +1,23 @@
 # rhel9-cis-ami
 
-Produces a **CIS Level 2 hardened Rocky Linux 9 AMI** in `eu-west-2` using [Packer](https://www.packer.io/) (HCL2) and the [`ansible-lockdown/RHEL9-CIS`](https://github.com/ansible-lockdown/RHEL9-CIS) Ansible role (compatible with Rocky Linux 9).
+Produces a **CIS Level 2 hardened Rocky Linux 9 AMI** in `eu-west-2` using [Packer](https://www.packer.io/) (HCL2) and a self-contained bash hardening script (`scripts/harden.sh`).
 
 ## Prerequisites
 
 ### AWS build
 
-| Tool | Version |
-|------|---------|
-| Packer | ≥ 1.10 |
-| Ansible | ≥ 2.15 (ansible-core) |
-| ansible-lint | ≥ 24.x |
-| AWS CLI | configured with credentials for eu-west-2 |
+| Tool | Notes |
+|------|-------|
+| Docker | Used to run Packer via `ghcr.io/pw9876/packer-docker` |
+| AWS CLI | Configured with credentials for eu-west-2 |
 
 ### Local build
 
-| Tool | Version |
-|------|---------|
-| Packer | ≥ 1.10 |
-| Ansible | ≥ 2.15 (ansible-core) |
-| QEMU | ≥ 8.0 (with KVM on Linux or HVF on macOS) |
-| RHEL 9 KVM guest image | QCOW2 format |
+| Tool | Notes |
+|------|-------|
+| Docker | Used to run Packer via `ghcr.io/pw9876/packer-docker` |
+| QEMU | ≥ 8.0 with KVM (Linux) or HVF (macOS) |
+| Rocky Linux 9 cloud image | QCOW2 format — see below |
 
 ## Quick start
 
@@ -60,23 +57,24 @@ The finished image can be imported into any KVM/libvirt environment or converted
 
 | Target | Description |
 |--------|-------------|
-| `make init` | Download Packer plugins and Ansible roles (AWS build) |
-| `make init-local` | Download Packer plugins and Ansible roles (local QEMU build) |
+| `make init` | Download Packer plugins (AWS build) |
+| `make init-local` | Download Packer plugins (local QEMU build) |
 | `make fmt` | Format HCL files in place |
 | `make validate` | Syntax-only validation of AWS template |
 | `make validate-local` | Syntax-only validation of local template |
-| `make lint` | Run ansible-lint |
+| `make lint` | Run shellcheck on `scripts/harden.sh` |
 | `make build` | Build the AMI (requires AWS credentials) |
 | `make build-local` | Build a local QCOW2 image (requires QEMU) |
 | `make clean` | Remove generated artefacts |
 
 ## CIS Level 2 exceptions
 
-EC2-specific overrides are documented in [`ansible/group_vars/all/cis.yml`](ansible/group_vars/all/cis.yml):
+Cloud-specific exceptions are noted at the top of [`scripts/harden.sh`](scripts/harden.sh):
 
-- `rhel9cis_set_boot_pass: false` — bootloader password is not practical on cloud images
-- Separate partition controls disabled by default (single-root AMI layout)
-- Physical-only AIDE initialisation skipped at build time
+- No bootloader password — not practical without a physical console
+- No separate partitions — single-root AMI layout; enforce at launch via LVM if needed
+- AIDE not initialised at build time — initialise on first boot of running instances
+- cramfs module not disabled — benign on cloud, avoids boot issues on some kernels
 
 ## CI pipeline
 
@@ -84,8 +82,8 @@ CI runs lint and validate only — no AWS credentials are required or stored in 
 
 | Job | Description |
 |-----|-------------|
-| `validate` | `packer init` + `packer fmt -check` + `packer validate -syntax-only` |
-| `lint` | `ansible-galaxy install` + `ansible-lint` |
+| `validate` | `packer init` + `packer fmt -check` + `packer validate -syntax-only` (AWS and local) |
+| `lint` | `shellcheck scripts/harden.sh` |
 | `dependency-scan` | `pip-audit` |
 | `security` | GitGuardian ggshield |
 | `semgrep` | Semgrep SAST |
