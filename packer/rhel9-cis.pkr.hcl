@@ -19,7 +19,7 @@ locals {
 
   base_tags = {
     Name      = local.ami_name
-    OS        = "RHEL9"
+    OS        = "Rocky9"
     CISLevel  = "2"
     ManagedBy = "packer"
     BuildDate = formatdate("YYYY-MM-DD", timestamp())
@@ -28,32 +28,32 @@ locals {
   all_tags = merge(local.base_tags, var.tags)
 }
 
-data "amazon-ami" "rhel9" {
+data "amazon-ami" "rocky9" {
   region = var.aws_region
 
   filters = {
-    name                = "RHEL-9.*_HVM-*-x86_64-*-Hourly2-GP3"
+    name                = "Rocky-9-EC2-Base-9.*-x86_64*"
     root-device-type    = "ebs"
     virtualization-type = "hvm"
     architecture        = "x86_64"
     state               = "available"
   }
 
-  owners      = ["309956199498"]
+  owners      = ["792107900819"]
   most_recent = true
 }
 
-source "amazon-ebs" "rhel9_cis" {
+source "amazon-ebs" "rocky9_cis" {
   region        = var.aws_region
   instance_type = var.instance_type
 
-  source_ami = data.amazon-ami.rhel9.id
+  source_ami = data.amazon-ami.rocky9.id
 
-  ssh_username = "ec2-user"
+  ssh_username = "rocky"
   ssh_timeout  = "10m"
 
   ami_name        = local.ami_name
-  ami_description = "CIS Level 2 hardened RHEL 9 AMI built by Packer"
+  ami_description = "CIS Level 2 hardened Rocky Linux 9 AMI built by Packer"
 
   ami_regions = var.ami_regions
 
@@ -104,8 +104,8 @@ source "amazon-ebs" "rhel9_cis" {
 }
 
 build {
-  name    = "rhel9-cis-l2"
-  sources = ["source.amazon-ebs.rhel9_cis"]
+  name    = "rocky9-cis-l2"
+  sources = ["source.amazon-ebs.rocky9_cis"]
 
   provisioner "ansible" {
     playbook_file = "${path.root}/../ansible/playbook.yml"

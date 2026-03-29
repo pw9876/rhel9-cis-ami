@@ -1,7 +1,9 @@
 # Packer artefacts
 manifest.json
+manifest-local.json
 *.pkrvars.hcl
 !*.pkrvars.hcl.example
+output-local/
 
 # Packer plugin cache
 .packer.d/
