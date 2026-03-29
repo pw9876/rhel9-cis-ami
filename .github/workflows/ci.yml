@@ -19,22 +19,39 @@ jobs:
     permissions:
       contents: read
       packages: read
-    container:
-      image: ghcr.io/pw9876/packer-docker:1.15.1
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: packer init
-        run: packer init packer/rhel9-cis.pkr.hcl
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/packer:/workspace" \
+            -w /workspace \
+            ghcr.io/pw9876/packer-docker:1.15.1 \
+            init rhel9-cis.pkr.hcl
 
       - name: packer fmt check
-        run: packer fmt -check packer/
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/packer:/workspace" \
+            -w /workspace \
+            ghcr.io/pw9876/packer-docker:1.15.1 \
+            fmt -check .
 
       - name: packer validate (syntax only)
-        run: packer validate -syntax-only packer/rhel9-cis.pkr.hcl
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/packer:/workspace" \
+            -w /workspace \
+            ghcr.io/pw9876/packer-docker:1.15.1 \
+            validate -syntax-only rhel9-cis.pkr.hcl
 
   lint:
     name: Ansible lint
