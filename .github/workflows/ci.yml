@@ -16,22 +16,38 @@ jobs:
   validate:
     name: Packer validate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Packer
-        uses: hashicorp/setup-packer@main
-        with:
-          version: latest
+      - name: Log in to ghcr.io
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
       - name: packer init
-        run: packer init packer/rhel9-cis.pkr.hcl
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/packer:/workspace" \
+            -w /workspace \
+            ghcr.io/pw9876/packer-docker:1.15.1 \
+            init rhel9-cis.pkr.hcl
 
       - name: packer fmt check
-        run: packer fmt -check packer/
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/packer:/workspace" \
+            -w /workspace \
+            ghcr.io/pw9876/packer-docker:1.15.1 \
+            fmt -check .
 
       - name: packer validate (syntax only)
-        run: packer validate -syntax-only packer/rhel9-cis.pkr.hcl
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/packer:/workspace" \
+            -w /workspace \
+            ghcr.io/pw9876/packer-docker:1.15.1 \
+            validate -syntax-only rhel9-cis.pkr.hcl
 
   lint:
     name: Ansible lint
