@@ -25,15 +25,15 @@ jobs:
       - name: Log in to ghcr.io
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
-      - name: packer init
+      - name: packer init (AWS)
         run: |
           docker run --rm \
             -v "${{ github.workspace }}/packer:/workspace" \
             -w /workspace \
             ghcr.io/pw9876/packer-docker:1.15.1 \
-            init rhel9-cis.pkr.hcl
+            init .
 
-      - name: packer fmt check
+      - name: packer fmt check (AWS)
         run: |
           docker run --rm \
             -v "${{ github.workspace }}/packer:/workspace" \
@@ -47,7 +47,7 @@ jobs:
             -v "${{ github.workspace }}/packer:/workspace" \
             -w /workspace \
             ghcr.io/pw9876/packer-docker:1.15.1 \
-            validate -syntax-only rhel9-cis.pkr.hcl
+            validate -syntax-only .
 
       - name: packer init (local)
         run: |
@@ -55,7 +55,7 @@ jobs:
             -v "${{ github.workspace }}/packer/local:/workspace" \
             -w /workspace \
             ghcr.io/pw9876/packer-docker:1.15.1 \
-            init rhel9-cis-local.pkr.hcl
+            init .
 
       - name: packer fmt check (local)
         run: |
@@ -71,7 +71,7 @@ jobs:
             -v "${{ github.workspace }}/packer/local:/workspace" \
             -w /workspace \
             ghcr.io/pw9876/packer-docker:1.15.1 \
-            validate -syntax-only rhel9-cis-local.pkr.hcl
+            validate -syntax-only .
 
   lint:
     name: shellcheck
