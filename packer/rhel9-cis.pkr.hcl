@@ -18,11 +18,11 @@ locals {
   ami_name  = "${var.ami_name_prefix}-${local.timestamp}"
 
   base_tags = {
-    Name        = local.ami_name
-    OS          = "RHEL9"
-    CISLevel    = "2"
-    ManagedBy   = "packer"
-    BuildDate   = formatdate("YYYY-MM-DD", timestamp())
+    Name      = local.ami_name
+    OS        = "RHEL9"
+    CISLevel  = "2"
+    ManagedBy = "packer"
+    BuildDate = formatdate("YYYY-MM-DD", timestamp())
   }
 
   all_tags = merge(local.base_tags, var.tags)
@@ -94,10 +94,10 @@ source "amazon-ebs" "rhel9_cis" {
 
   associate_public_ip_address = var.associate_public_ip
 
-  run_tags          = local.all_tags
-  run_volume_tags   = local.all_tags
-  snapshot_tags     = local.all_tags
-  tags              = local.all_tags
+  run_tags        = local.all_tags
+  run_volume_tags = local.all_tags
+  snapshot_tags   = local.all_tags
+  tags            = local.all_tags
 
   # Ensure the instance is fully stopped before creating the AMI
   shutdown_behavior = "stop"
@@ -110,8 +110,8 @@ build {
   provisioner "ansible" {
     playbook_file = "${path.root}/../ansible/playbook.yml"
 
-    galaxy_file             = "${path.root}/../ansible/requirements.yml"
-    galaxy_force_install    = true
+    galaxy_file          = "${path.root}/../ansible/requirements.yml"
+    galaxy_force_install = true
 
     ansible_env_vars = [
       "ANSIBLE_ROLES_PATH=${path.root}/../ansible/roles",
