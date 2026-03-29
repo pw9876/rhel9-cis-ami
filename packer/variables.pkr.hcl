@@ -13,7 +13,7 @@ variable "instance_type" {
 variable "ami_name_prefix" {
   type        = string
   description = "Prefix for the resulting AMI name."
-  default     = "rhel9-cis-l2"
+  default     = "rocky9-cis-l2"
 }
 
 variable "vpc_id" {
