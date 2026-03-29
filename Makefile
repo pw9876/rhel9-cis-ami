@@ -1,6 +1,8 @@
 PACKER_IMAGE     := ghcr.io/pw9876/packer-docker:1.15.1
 PACKER           := docker run --rm \
                       -v "$(CURDIR):/workspace" \
+                      -v "$(HOME)/.ssh:/ssh:ro" \
+                      -v "$(HOME)/Downloads:/downloads:ro" \
                       -w /workspace \
                       --user "$(shell id -u):$(shell id -g)" \
                       -e PACKER_PLUGIN_PATH=/workspace/.packer.d/plugins \
