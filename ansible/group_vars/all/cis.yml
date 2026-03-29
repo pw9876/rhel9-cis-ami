@@ -1,0 +1,73 @@
+---
+# CIS Level 2 — RHEL 9
+# Reference: https://github.com/ansible-lockdown/RHEL9-CIS
+
+# ── Benchmark level ────────────────────────────────────────────────────────────
+rhel9cis_level: 2
+
+# ── EC2 / cloud exceptions ─────────────────────────────────────────────────────
+# Bootloader password is not practical on cloud images (no physical console).
+rhel9cis_set_boot_pass: false
+
+# GRUB2 password hash — set if rhel9cis_set_boot_pass is re-enabled.
+# rhel9cis_bootloader_password_hash: "grub.pbkdf2.sha512...."
+
+# Physical-only controls — skip on EC2.
+rhel9cis_rule_1_1_1_8: false   # Ensure mounting of cramfs is disabled (irrelevant on cloud)
+rhel9cis_rule_1_3_1: false     # AIDE — can be enabled post-build for running instances
+
+# ── Partition / filesystem ─────────────────────────────────────────────────────
+# EC2 default AMIs ship with a single root partition; separate partitions for
+# /tmp, /var, etc. are typically enforced at the OS image level or via LVM.
+# Set these to true only if you customise the partition layout in the Packer
+# block device mappings.
+rhel9cis_tmp_partition: false
+rhel9cis_var_partition: false
+rhel9cis_var_log_partition: false
+rhel9cis_var_log_audit_partition: false
+rhel9cis_home_partition: false
+
+# ── SSH hardening ─────────────────────────────────────────────────────────────
+rhel9cis_sshd_config:
+  Protocol: 2
+  LogLevel: VERBOSE
+  MaxAuthTries: 4
+  IgnoreRhosts: "yes"
+  HostbasedAuthentication: "no"
+  PermitRootLogin: "no"
+  PermitEmptyPasswords: "no"
+  PermitUserEnvironment: "no"
+  Ciphers: "aes256-gcm@openssh.com,chacha20-poly1305@openssh.com,aes256-ctr"
+  MACs: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com"
+  KexAlgorithms: "curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp521"
+  ClientAliveInterval: 300
+  ClientAliveCountMax: 0
+  LoginGraceTime: 60
+  Banner: /etc/issue.net
+  UsePAM: "yes"
+  AllowTcpForwarding: "no"
+  X11Forwarding: "no"
+  PrintLastLog: "yes"
+
+# ── Auditd ────────────────────────────────────────────────────────────────────
+rhel9cis_auditd_action_mail_acct: root
+rhel9cis_auditd_space_left_action: email
+rhel9cis_auditd_admin_space_left_action: halt
+rhel9cis_auditd_max_log_file_action: keep_logs
+rhel9cis_auditd_max_log_file: 32
+
+# ── Firewall ──────────────────────────────────────────────────────────────────
+rhel9cis_firewall: firewalld
+
+# ── SELinux ───────────────────────────────────────────────────────────────────
+rhel9cis_selinux_policy: targeted
+rhel9cis_selinux_enforce: enforcing
+
+# ── Password policy ───────────────────────────────────────────────────────────
+rhel9cis_pass_max_days: 90
+rhel9cis_pass_min_days: 7
+rhel9cis_pass_warn_age: 14
+rhel9cis_pass_min_len: 14
+
+# ── Crypto policy ─────────────────────────────────────────────────────────────
+rhel9cis_crypto_policy: FIPS

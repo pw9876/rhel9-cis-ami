@@ -1,0 +1,27 @@
+# Packer artefacts
+manifest.json
+*.pkrvars.hcl
+!*.pkrvars.hcl.example
+
+# Packer plugin cache
+.packer.d/
+packer_cache/
+
+# Ansible downloaded roles and collections
+ansible/roles/
+ansible/collections/
+
+# Python virtual environments and caches
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+pip-audit-report*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo

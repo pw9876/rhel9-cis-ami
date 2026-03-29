@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Tier 1: fast checks (run in parallel) ─────────────────────────────────
+
+  validate:
+    name: Packer validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Packer
+        uses: hashicorp/setup-packer@main
+        with:
+          version: latest
+
+      - name: packer init
+        run: packer init packer/rhel9-cis.pkr.hcl
+
+      - name: packer fmt check
+        run: packer fmt -check packer/
+
+      - name: packer validate (syntax only)
+        run: packer validate -syntax-only packer/rhel9-cis.pkr.hcl
+
+  lint:
+    name: Ansible lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ansible-core and ansible-lint
+        run: pip install ansible-core ansible-lint
+
+      - name: Install required roles
+        run: |
+          ansible-galaxy install -r ansible/requirements.yml \
+            --roles-path ansible/roles --force
+
+      - name: Run ansible-lint
+        run: ansible-lint ansible/playbook.yml
+
+  # ── Tier 2: security / quality (need tier 1 to pass) ──────────────────────
+
+  dependency-scan:
+    name: Dependency scan (pip-audit)
+    runs-on: ubuntu-latest
+    needs: [validate, lint]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit
+        run: pip-audit --desc
+        continue-on-error: true
+
+  security:
+    name: GitGuardian secret scan
+    runs-on: ubuntu-latest
+    needs: [validate, lint]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: GitGuardian Scan
+        uses: GitGuardian/ggshield-action@v1
+        env:
+          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
+          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    needs: [validate, lint]
+    permissions:
+      contents: read
+    env:
+      SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        run: semgrep ci
+
+  # ── Tier 3: quality gate ──────────────────────────────────────────────────
+
+  quality:
+    name: SonarCloud analysis
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, security, semgrep]
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

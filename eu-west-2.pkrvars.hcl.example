@@ -1,0 +1,28 @@
+# Copy this file to eu-west-2.pkrvars.hcl and fill in your values.
+# DO NOT commit the populated file — it is listed in .gitignore.
+
+aws_region  = "eu-west-2"
+instance_type = "t3.medium"
+
+ami_name_prefix = "rhel9-cis-l2"
+
+# Optional: restrict the build to a specific VPC/subnet.
+# Leave blank to use the default VPC.
+vpc_id    = ""
+subnet_id = ""
+
+associate_public_ip = true
+
+# Optional: KMS key for EBS encryption (ARN or alias).
+# Leave blank to use the AWS-managed key (aws/ebs).
+kms_key_id = ""
+
+# Optional: copy the resulting AMI to additional regions.
+ami_regions = []
+
+# Optional: extra tags applied to the AMI and all build resources.
+tags = {
+  Project     = "rhel9-cis-ami"
+  Environment = "golden-image"
+  Owner       = "platform-team"
+}
